@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: finflow-backend
+  namespace: finflow
+  labels:
+    app: finflow-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: finflow-backend
+  template:
+    metadata:
+      labels:
+        app: finflow-backend
+    spec:
+      containers:
+        - name: backend
+          # ECR URI will be dynamically updated by Jenkins. We place a placeholder here.
+          image: 648471849551.dkr.ecr.us-east-1.amazonaws.com/production-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5001
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          envFrom:
+            - configMapRef:
+                name: finflow-config
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: finflow-secrets
+                  key: MONGO_URI
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: finflow-secrets
+                  key: JWT_SECRET
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5001
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5001
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: finflow-backend-service
+  namespace: finflow
+  labels:
+    app: finflow-backend
+spec:
+  ports:
+    - port: 5001
+      targetPort: 5001
+      protocol: TCP
+  selector:
+    app: finflow-backend
+  type: ClusterIP

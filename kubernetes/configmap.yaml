@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: finflow-config
+  namespace: finflow
+data:
+  PORT: "5001"
+  NODE_ENV: "production"
+  # URL mapping for the API connection (Ingress resolves path /api to backend service)
+  VITE_API_URL: "/api"

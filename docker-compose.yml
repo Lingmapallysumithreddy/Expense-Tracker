@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # Database Service
+  mongodb:
+    image: mongo:6.0
+    container_name: finflow_db
+    ports:
+      - '27017:27017'
+    volumes:
+      - finflow_db_data:/data/db
+    networks:
+      - finflow_network
+
+  # Backend API Service
+  backend:
+    build: ./backend
+    container_name: finflow_api
+    ports:
+      - '5001:5001'
+    environment:
+      - PORT=5001
+      - NODE_ENV=production
+      - MONGO_URI=mongodb://mongodb:27017/expensetracker
+      - JWT_SECRET=super_secret_jwt_key_123456789_abcdef
+    depends_on:
+      - mongodb
+    networks:
+      - finflow_network
+
+  # Frontend Web Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:5001/api
+    container_name: finflow_web
+    ports:
+      - '3000:80'
+    depends_on:
+      - backend
+    networks:
+      - finflow_network
+
+volumes:
+  finflow_db_data:
+
+networks:
+  finflow_network:
+    driver: bridge

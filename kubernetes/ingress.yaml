@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: finflow-ingress
+  namespace: finflow
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    # Configures Nginx-like rewriting or simple path matching rules
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+spec:
+  rules:
+    - http:
+        paths:
+          # Route API calls starting with /api to backend service
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: finflow-backend-service
+                port:
+                  number: 5001
+          # Route all other traffic to frontend web server
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: finflow-frontend-service
+                port:
+                  number: 80

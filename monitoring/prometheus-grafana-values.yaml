@@ -1,0 +1,53 @@
+# Helm Value Overrides for kube-prometheus-stack
+prometheusOperator:
+  enabled: true
+
+prometheus:
+  enabled: true
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    retention: 15d
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "512Mi"
+      limits:
+        cpu: "500m"
+        memory: "1024Mi"
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp2
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+grafana:
+  enabled: true
+  adminPassword: "admin" # Set a secure password in production or use Kubernetes secrets
+  
+  service:
+    type: LoadBalancer # Exposes Grafana UI directly via an AWS Classic/Network Load Balancer
+    port: 80
+    targetPort: 3000
+  
+  persistence:
+    enabled: true
+    storageClassName: gp2
+    accessModes: ["ReadWriteOnce"]
+    size: 10Gi
+  
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+
+nodeExporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true
