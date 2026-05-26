@@ -1,0 +1,103 @@
+
+# kube-prometheus-stack values for FinFlow EKS deployment
+# Optimized for t3.small nodes (free tier)
+
+# ─── PROMETHEUS ────────────────────────────────────────────────────────────────
+prometheus:
+  prometheusSpec:
+    # Scrape all namespaces
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    # Retention: 7 days
+    retention: 7d
+    # Lightweight resource limits for t3.small
+    resources:
+      requests:
+        cpu: 200m
+        memory: 400Mi
+      limits:
+        cpu: 500m
+        memory: 700Mi
+    # Use emptyDir (ephemeral) - no EBS CSI driver needed; perfect for demo
+    storageSpec:
+      emptyDir:
+        medium: ""
+
+defaultDashboardsEnabled: false
+
+# ─── GRAFANA ───────────────────────────────────────────────────────────────────
+grafana:
+  enabled: true
+  adminUser: admin
+  adminPassword: "FinFlow@Grafana2024"
+  # Expose via AWS LoadBalancer
+  service:
+    type: LoadBalancer
+    port: 80
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+      service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
+  # Pre-loaded dashboards
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: "default"
+          orgId: 1
+          folder: ""
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/default
+  dashboards:
+    default:
+      kubernetes-cluster:
+        gnetId: 7249
+        revision: 1
+        datasource: Prometheus
+      node-exporter:
+        gnetId: 1860
+        revision: 37
+        datasource: Prometheus
+      kubernetes-pods:
+        gnetId: 6417
+        revision: 1
+        datasource: Prometheus
+
+# ─── ALERTMANAGER ──────────────────────────────────────────────────────────────
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
+# ─── NODE EXPORTER ─────────────────────────────────────────────────────────────
+nodeExporter:
+  enabled: true
+
+# ─── KUBE STATE METRICS ────────────────────────────────────────────────────────
+kubeStateMetrics:
+  enabled: true
+
+# ─── PROMETHEUS OPERATOR ───────────────────────────────────────────────────────
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi

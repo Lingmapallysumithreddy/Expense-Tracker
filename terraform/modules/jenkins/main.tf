@@ -1,11 +1,11 @@
-# Fetch the latest Amazon Linux 2 AMI
-data "aws_ami" "amazon_linux_2" {
+# Fetch the latest Amazon Linux 2023 AMI
+data "aws_ami" "amazon_linux_2023" {
   most_recent = true
   owners      = ["amazon"]
 
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+    values = ["al2023-ami-2023.*-x86_64"]
   }
 }
 
@@ -57,7 +57,7 @@ resource "aws_security_group" "jenkins" {
 
 # Jenkins Server EC2 Instance
 resource "aws_instance" "jenkins" {
-  ami                         = data.aws_ami.amazon_linux_2.id
+  ami                         = data.aws_ami.amazon_linux_2023.id
   instance_type               = var.instance_type
   subnet_id                   = var.public_subnet_id
   vpc_security_group_ids      = [aws_security_group.jenkins.id]
@@ -73,7 +73,7 @@ resource "aws_instance" "jenkins" {
               sudo yum install git -y
               
               # Install Docker
-              sudo amazon-linux-extras install docker -y || sudo yum install docker -y
+              sudo yum install docker -y
               sudo systemctl start docker
               sudo systemctl enable docker
               sudo usermod -aG docker ec2-user
@@ -84,7 +84,7 @@ resource "aws_instance" "jenkins" {
               sudo yum upgrade -y
               
               # Install Java (Jenkins requirement)
-              sudo yum install java-17-amazon-corretto -y
+              sudo yum install java-21-amazon-corretto -y
               sudo yum install jenkins -y
               sudo systemctl start jenkins
               sudo systemctl enable jenkins

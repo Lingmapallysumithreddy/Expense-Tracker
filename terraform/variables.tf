@@ -48,12 +48,12 @@ variable "jenkins_key_name" {
 
 variable "jenkins_instance_type" {
   type        = string
-  default     = "t3.medium"
+  default     = "t3.small"
   description = "EC2 instance size for the Jenkins runner"
 }
 
 variable "eks_instance_types" {
   type        = list(string)
-  default     = ["t3.medium"]
+  default     = ["t3.small"]
   description = "Instance sizes for the EKS node group"
 }
